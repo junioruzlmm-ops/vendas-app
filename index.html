@@ -650,6 +650,24 @@ function settings(){
     <div class="field"><label>Logo (aparece nos PDFs)</label><div class="row">${st.logo?`<img class="thumb" src="${st.logo}" alt="Logo">`:''}<button class="btn sm ghost" data-act="set-logo">${st.logo?'Trocar logo':'Escolher logo'}</button>${st.logo?'<button class="btn sm danger" data-act="set-rmlogo">Remover</button>':''}</div><input type="file" id="s-file" accept="image/*" hidden></div>
     <button class="btn" data-act="set-save">Salvar dados</button>
   </div>
+  <div class="card"><h3>Aparência</h3>
+    <div class="field"><label>Tema</label>
+      <select id="s-theme">
+        <option value="auto" ${localStorage.getItem('balcao-theme')==='auto'||!localStorage.getItem('balcao-theme')?'selected':''}>Automático (iPhone)</option>
+        <option value="light" ${localStorage.getItem('balcao-theme')==='light'?'selected':''}>Claro</option>
+        <option value="dark" ${localStorage.getItem('balcao-theme')==='dark'?'selected':''}>Escuro</option>
+      </select>
+    </div>
+    <div class="field"><label>Cor principal</label>
+      <select id="s-color">
+        <option value="#2547F5">Azul Balcão</option>
+        <option value="#0A84FF">Azul iOS</option>
+        <option value="#30D158">Verde</option>
+        <option value="#FF9F0A">Laranja</option>
+      </select>
+    </div>
+    <button class="btn" data-act="theme-save">Salvar aparência</button>
+  </div>
   <div class="card"><h3>Backup</h3>
     <div class="sub" style="margin:0 0 6px">${st.lastBackup?'Último backup em '+fmtDate(st.lastBackup)+'.':'Nenhum backup feito ainda.'} O iPhone pode apagar dados de sites que ficam muito tempo sem uso, então guarde uma cópia.</div>
     <div class="grid2"><button class="btn ghost" data-act="backup">Exportar</button><button class="btn ghost" data-act="import">Importar</button></div>
@@ -1086,6 +1104,14 @@ const ACT={
   'cat-toggle'(b){const id=b.dataset.id;if(V.catSel.has(id))V.catSel.delete(id);else V.catSel.add(id);render();},
   'cat-all'(){const l=catalogList(),all=l.every(p=>V.catSel.has(p.id));l.forEach(p=>all?V.catSel.delete(p.id):V.catSel.add(p.id));render();},
   'cat-pdf'(){pdfCatalog(catalogList().filter(p=>V.catSel.has(p.id)));},
+  'theme-save'(){
+    const theme=document.querySelector('#s-theme')?.value||'auto';
+    const color=document.querySelector('#s-color')?.value||'#2547F5';
+    localStorage.setItem('balcao-theme',theme);
+    localStorage.setItem('balcao-color',color);
+    applyTheme();
+    toast('Aparência salva');
+  },
   'set-save'(){
     const st=S.settings;
     st.name=$('#s-name').value.trim();st.doc=$('#s-doc').value.trim();st.phone=$('#s-phone').value.trim();st.addr=$('#s-addr').value.trim();
@@ -1144,6 +1170,16 @@ document.addEventListener('keydown',e=>{
   }
   if(e.key==='Enter'&&e.target.id==='scan-manual')ACT['scan-ok']();
 });
+
+function applyTheme(){
+  const theme=localStorage.getItem('balcao-theme')||'auto';
+  const color=localStorage.getItem('balcao-color');
+  document.documentElement.removeAttribute('data-theme');
+  if(theme==='dark') document.documentElement.setAttribute('data-theme','dark');
+  if(theme==='light') document.documentElement.setAttribute('data-theme','light');
+  if(color) document.documentElement.style.setProperty('--accent',color);
+}
+applyTheme();
 
 /* ---------- ícone do app e início ---------- */
 function makeIcon(){
