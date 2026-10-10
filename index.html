@@ -232,6 +232,17 @@ svg.bars{width:100%;height:auto;display:block}
 .menu .item{padding:15px 14px}
 .menu .item .mi{width:40px;height:40px;border-radius:12px;background:var(--accent-bg);color:var(--accent);display:grid;place-items:center;flex:none}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+<style id="preview-aparencia-css">
+.theme-preview{
+ background:var(--bg);border:1px solid var(--line);border-radius:18px;padding:14px;margin:12px 0;
+}
+.theme-preview .pv-head{font-weight:800;margin-bottom:10px}
+.theme-preview .pv-card{background:var(--surface);border-radius:14px;padding:12px;border:1px solid var(--line)}
+.theme-preview .pv-actions{display:flex;gap:8px;margin-top:10px}
+.theme-preview .pv-btn{background:var(--accent);color:var(--on-accent);padding:10px;border-radius:12px;text-align:center;flex:1;font-weight:600}
+</style>
+
 </style>
 </head>
 <body>
@@ -244,7 +255,14 @@ svg.bars{width:100%;height:auto;display:block}
   <div id="toast" role="status" aria-live="polite"></div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js">
+function atualizarPreviewTema(){
+  const box=document.querySelector('.theme-preview');
+  if(!box)return;
+  box.style.display='block';
+}
+
+</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script>
@@ -651,6 +669,17 @@ function settings(){
     <button class="btn" data-act="set-save">Salvar dados</button>
   </div>
   <div class="card"><h3>Aparência</h3>
+    <div class="theme-preview">
+      <div class="pv-head">Prévia do aplicativo</div>
+      <div class="pv-card">
+        <b>Balcão</b>
+        <div style="margin-top:8px">Hoje&nbsp;&nbsp; R$ 480,00</div>
+        <div class="pv-actions">
+          <div class="pv-btn">Nova venda</div>
+          <div class="pv-btn">Produtos</div>
+        </div>
+      </div>
+    </div>
     <div class="field"><label>Tema</label>
       <select id="s-theme">
         <option value="auto" ${localStorage.getItem('balcao-theme')==='auto'||!localStorage.getItem('balcao-theme')?'selected':''}>Automático (iPhone)</option>
