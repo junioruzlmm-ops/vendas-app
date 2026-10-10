@@ -232,17 +232,6 @@ svg.bars{width:100%;height:auto;display:block}
 .menu .item{padding:15px 14px}
 .menu .item .mi{width:40px;height:40px;border-radius:12px;background:var(--accent-bg);color:var(--accent);display:grid;place-items:center;flex:none}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
-
-<style id="preview-aparencia-css">
-.theme-preview{
- background:var(--bg);border:1px solid var(--line);border-radius:18px;padding:14px;margin:12px 0;
-}
-.theme-preview .pv-head{font-weight:800;margin-bottom:10px}
-.theme-preview .pv-card{background:var(--surface);border-radius:14px;padding:12px;border:1px solid var(--line)}
-.theme-preview .pv-actions{display:flex;gap:8px;margin-top:10px}
-.theme-preview .pv-btn{background:var(--accent);color:var(--on-accent);padding:10px;border-radius:12px;text-align:center;flex:1;font-weight:600}
-</style>
-
 </style>
 </head>
 <body>
@@ -255,14 +244,7 @@ svg.bars{width:100%;height:auto;display:block}
   <div id="toast" role="status" aria-live="polite"></div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js">
-function atualizarPreviewTema(){
-  const box=document.querySelector('.theme-preview');
-  if(!box)return;
-  box.style.display='block';
-}
-
-</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script>
@@ -656,6 +638,16 @@ function clients(){
   ${l.length?`<div class="list">${l.map(c=>`<div class="item" style="cursor:default"><span class="thumb ph" style="--h:${hueOf(c.name)}">${esc(c.name.charAt(0))}</span><span class="mid"><span class="nm">${esc(c.name)}</span><span class="sb">${c.n} ${c.n===1?'compra':'compras'} · última em ${fmtDate(c.last)}${c.phone?' · '+esc(c.phone):''}</span></span><span class="rt"><b>${brl(c.tot)}</b></span></div>`).join('')}</div>`:`<div class="empty"><b>Nenhum cliente ainda</b>Informe o nome ao finalizar uma venda e ele aparece aqui.</div>`}`;
 }
 
+function applyBalcaoTheme(){
+  const theme=localStorage.getItem('balcao-theme')||'auto';
+  const color=localStorage.getItem('balcao-color')||'#2547F5';
+  document.documentElement.style.setProperty('--accent', color);
+  document.documentElement.removeAttribute('data-theme');
+  if(theme==='dark') document.documentElement.setAttribute('data-theme','dark');
+  if(theme==='light') document.documentElement.setAttribute('data-theme','light');
+}
+applyBalcaoTheme();
+
 function settings(){
   const st=S.settings;
   return `${header('Ajustes','Loja e dados',true)}
@@ -669,33 +661,33 @@ function settings(){
     <button class="btn" data-act="set-save">Salvar dados</button>
   </div>
   <div class="card"><h3>Aparência</h3>
-    <div class="theme-preview">
-      <div class="pv-head">Prévia do aplicativo</div>
-      <div class="pv-card">
-        <b>Balcão</b>
-        <div style="margin-top:8px">Hoje&nbsp;&nbsp; R$ 480,00</div>
-        <div class="pv-actions">
-          <div class="pv-btn">Nova venda</div>
-          <div class="pv-btn">Produtos</div>
-        </div>
-      </div>
-    </div>
-    <div class="field"><label>Tema</label>
-      <select id="s-theme">
-        <option value="auto" ${localStorage.getItem('balcao-theme')==='auto'||!localStorage.getItem('balcao-theme')?'selected':''}>Automático (iPhone)</option>
-        <option value="light" ${localStorage.getItem('balcao-theme')==='light'?'selected':''}>Claro</option>
-        <option value="dark" ${localStorage.getItem('balcao-theme')==='dark'?'selected':''}>Escuro</option>
+    <div class="field">
+      <label>Tema</label>
+      <select id="theme-choice">
+        <option value="auto">Automático (iPhone)</option>
+        <option value="light">Claro</option>
+        <option value="dark">Escuro</option>
       </select>
     </div>
-    <div class="field"><label>Cor principal</label>
-      <select id="s-color">
+    <div class="field">
+      <label>Cor principal</label>
+      <select id="color-choice">
         <option value="#2547F5">Azul Balcão</option>
         <option value="#0A84FF">Azul iOS</option>
         <option value="#30D158">Verde</option>
         <option value="#FF9F0A">Laranja</option>
       </select>
     </div>
+    <div class="card" style="background:var(--surface2)">
+      <b>Prévia</b>
+      <div style="margin-top:10px;background:var(--surface);padding:12px;border-radius:14px">
+        <strong>Balcão</strong><br>
+        Faturamento hoje: R$ 480,00
+        <button class="btn sm" style="margin-top:10px">Nova venda</button>
+      </div>
+    </div>
     <button class="btn" data-act="theme-save">Salvar aparência</button>
+    <button class="btn ghost" data-act="theme-reset">Restaurar padrão</button>
   </div>
   <div class="card"><h3>Backup</h3>
     <div class="sub" style="margin:0 0 6px">${st.lastBackup?'Último backup em '+fmtDate(st.lastBackup)+'.':'Nenhum backup feito ainda.'} O iPhone pode apagar dados de sites que ficam muito tempo sem uso, então guarde uma cópia.</div>
@@ -1134,12 +1126,19 @@ const ACT={
   'cat-all'(){const l=catalogList(),all=l.every(p=>V.catSel.has(p.id));l.forEach(p=>all?V.catSel.delete(p.id):V.catSel.add(p.id));render();},
   'cat-pdf'(){pdfCatalog(catalogList().filter(p=>V.catSel.has(p.id)));},
   'theme-save'(){
-    const theme=document.querySelector('#s-theme')?.value||'auto';
-    const color=document.querySelector('#s-color')?.value||'#2547F5';
-    localStorage.setItem('balcao-theme',theme);
-    localStorage.setItem('balcao-color',color);
-    applyTheme();
+    const theme=$('#theme-choice')?.value || 'auto';
+    const color=$('#color-choice')?.value || '#2547F5';
+    localStorage.setItem('balcao-theme', theme);
+    localStorage.setItem('balcao-color', color);
+    applyBalcaoTheme();
     toast('Aparência salva');
+  },
+  'theme-reset'(){
+    localStorage.removeItem('balcao-theme');
+    localStorage.removeItem('balcao-color');
+    applyBalcaoTheme();
+    render();
+    toast('Padrão restaurado');
   },
   'set-save'(){
     const st=S.settings;
@@ -1199,16 +1198,6 @@ document.addEventListener('keydown',e=>{
   }
   if(e.key==='Enter'&&e.target.id==='scan-manual')ACT['scan-ok']();
 });
-
-function applyTheme(){
-  const theme=localStorage.getItem('balcao-theme')||'auto';
-  const color=localStorage.getItem('balcao-color');
-  document.documentElement.removeAttribute('data-theme');
-  if(theme==='dark') document.documentElement.setAttribute('data-theme','dark');
-  if(theme==='light') document.documentElement.setAttribute('data-theme','light');
-  if(color) document.documentElement.style.setProperty('--accent',color);
-}
-applyTheme();
 
 /* ---------- ícone do app e início ---------- */
 function makeIcon(){
