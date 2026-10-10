@@ -161,6 +161,13 @@ textarea{min-height:70px;resize:vertical}
 .tab.sell .pill{width:54px;height:54px;border-radius:18px;background:var(--accent);color:var(--on-accent);margin-top:-24px;display:grid;place-items:center;box-shadow:0 10px 18px -8px var(--accent);border:3px solid var(--bg)}
 .tab.sell{color:var(--ink);font-weight:600}
 
+/* Bloqueia arrasto lateral em telas e formulários; chips continuam rolando */
+html,body,#app,#screen,#sheet,.sheet{max-width:100%;overflow-x:hidden;overscroll-behavior-x:none}
+#screen,.sheet{touch-action:pan-y;min-width:0}
+.sheet>*{max-width:100%;min-width:0}
+.sheet input,.sheet textarea,.sheet select,.sheet img{max-width:100%}
+.sheet .grid2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.sheet .row{min-width:0;flex-wrap:wrap}
 /* sheet / scan / toast */
 #sheet,#scan{position:absolute;inset:0;display:none;background:rgba(7,12,22,.55);z-index:20}
 #sheet.open{display:flex;align-items:flex-end}
@@ -902,33 +909,53 @@ function pdfHeader(d,title,line2){
 }
 async function pdfSale(sale){
   const d=pdfReady();if(!d)return;
-  const W=210,M=14,no=String(sale.n).padStart(6,'0');
-  pdfHeader(d,'COMPROVANTE DE VENDA',`Nº ${no}  |  ${fmtDate(sale.date)} ${fmtTime(sale.date)}`);
-  d.setTextColor(...MUTE);d.setFontSize(8.5);d.setFont('helvetica','normal');d.text('CLIENTE',M,45);
-  d.setTextColor(...INK);d.setFontSize(11);d.setFont('helvetica','bold');d.text(sale.client.name||'Consumidor final',M,51);
-  d.setFont('helvetica','normal');d.setFontSize(9);d.setTextColor(...MUTE);
-  d.text([sale.client.phone,'Pagamento: '+sale.pay].filter(Boolean).join('   |   '),M,56.5);
+  const W=210,M=12,no=String(sale.n).padStart(6,'0');
+  const fmt=(v)=>brl(Number(v)||0);
+  const line=(x1,y1,x2,y2)=>{d.setDrawColor(185,194,207);d.setLineWidth(.25);d.line(x1,y1,x2,y2)};
+  const txt=(t,x,y,size=9,bold=false)=>{d.setFont('helvetica',bold?'bold':'normal');d.setFontSize(size);d.setTextColor(24,35,53);d.text(String(t||''),x,y)};
+  // Cabeçalho inspirado em documento comercial, sem reproduzir campos fiscais oficiais.
+  d.setDrawColor(90,105,128);d.setLineWidth(.35);d.rect(M,12,W-2*M,39);
+  let titleX=M+4;
+  if(S.settings.logo){try{d.addImage(S.settings.logo,'JPEG',M+3,17,24,24);titleX=M+30}catch(e){}}
+  txt(S.settings.name||'Minha loja',titleX,21,14,true);
+  const info=[S.settings.doc,S.settings.phone,S.settings.addr].filter(Boolean);
+  let iy=27;for(const part of info){const rows=d.splitTextToSize(String(part),W-titleX-M-7);for(const row of rows.slice(0,2)){txt(row,titleX,iy,8);iy+=4.4;}}
+  line(M,55,W-M,55);
+  txt('COMPROVANTE DE VENDA',M+3,62,12,true);
+  txt('Nº '+no,W-M-3,62,10,true);
+  txt('Emissão: '+fmtDate(sale.date)+' às '+fmtTime(sale.date),M+3,69,8.5);
+  txt('Documento sem valor fiscal',W-M-3,69,7.5);
+  d.setDrawColor(185,194,207);d.roundedRect(M,74,W-2*M,25,2,2);
+  txt('DADOS DO CLIENTE',M+3,80,8,true);
+  txt('Nome: '+(sale.client?.name||'Consumidor final'),M+3,86,9);
+  const extra=[sale.client?.phone,sale.client?.addr].filter(Boolean).join('  |  ');
+  if(extra){const lines=d.splitTextToSize(extra,W-2*M-6);txt(lines[0],M+3,93,8);}
   d.autoTable({
-    startY:64,
-    head:[['Item','Código','Descrição','Qtd','Valor unit.','Total']],
-    body:sale.items.map((i,k)=>[String(k+1),i.code||'—',i.name,String(i.qty),brl(i.price),brl(i.qty*i.price)]),
-    theme:'plain',margin:{left:M,right:M},
-    styles:{fontSize:9,cellPadding:2.6,textColor:INK,lineColor:LINE,lineWidth:{bottom:.2}},
-    headStyles:{fillColor:SOFT,textColor:INK,fontStyle:'bold'},
-    columnStyles:{0:{cellWidth:12},1:{cellWidth:34},3:{halign:'right',cellWidth:14},4:{halign:'right',cellWidth:28},5:{halign:'right',cellWidth:28}}
+    startY:105,head:[['ITEM','CÓDIGO','DESCRIÇÃO','QTD','VLR. UNIT.','VLR. TOTAL']],
+    body:sale.items.map((i,k)=>[String(k+1).padStart(2,'0'),String(i.code||'—'),i.name,String(i.qty),fmt(i.price),fmt(i.qty*i.price)]),
+    theme:'grid',margin:{left:M,right:M,top:16,bottom:25},
+    styles:{font:'helvetica',fontSize:8,cellPadding:2.4,textColor:[24,35,53],lineColor:[185,194,207],lineWidth:.2,overflow:'linebreak'},
+    headStyles:{fillColor:[231,236,246],textColor:[24,35,53],fontStyle:'bold'},
+    columnStyles:{0:{cellWidth:13},1:{cellWidth:32},3:{cellWidth:14,halign:'center'},4:{cellWidth:30,halign:'right'},5:{cellWidth:32,halign:'right'}}
   });
-  let y=d.lastAutoTable.finalY+9;
-  if(y>238){d.addPage();y=20;}
-  const lx=W-M-84;
-  d.setFontSize(10);d.setFont('helvetica','normal');d.setTextColor(...MUTE);
-  d.text('Subtotal',lx,y);d.setTextColor(...INK);d.text(brl(saleSub(sale)),W-M,y,{align:'right'});
-  if(sale.discount){y+=6;d.setTextColor(...MUTE);d.text('Desconto',lx,y);d.setTextColor(...INK);d.text('- '+brl(sale.discount),W-M,y,{align:'right'});}
-  y+=5;d.setFillColor(...ACC);d.roundedRect(lx-4,y,88,15,3,3,'F');
-  d.setTextColor(255,255,255);d.setFont('helvetica','bold');d.setFontSize(11);d.text('TOTAL',lx,y+9.5);
-  d.setFontSize(15);d.text(brl(saleTotal(sale)),W-M-1,y+10,{align:'right'});
-  d.setDrawColor(...LINE);d.line(M,276,W-M,276);
-  d.setFont('helvetica','bold');d.setFontSize(10);d.setTextColor(...INK);d.text('Obrigado pela preferência!',W/2,282,{align:'center'});
-  d.setFont('helvetica','normal');d.setFontSize(8);d.setTextColor(...MUTE);d.text('Documento sem valor fiscal. Comprovante de venda.',W/2,287,{align:'center'});
+  let y=d.lastAutoTable.finalY+10;
+  if(y>241){d.addPage();y=20;}
+  const x=W-M-93;
+  txt('Subtotal',x,y,9);d.text(fmt(saleSub(sale)),W-M,y,{align:'right'});
+  y+=7;txt('Desconto',x,y,9);d.text(fmt(sale.discount),W-M,y,{align:'right'});
+  y+=4;d.setFillColor(231,236,246);d.roundedRect(x-3,y,96,17,2,2,'F');
+  txt('TOTAL DO PEDIDO',x,y+10,10,true);d.setFont('helvetica','bold');d.setFontSize(12);d.text(fmt(saleTotal(sale)),W-M-2,y+10,{align:'right'});
+  y+=27;if(y>265){d.addPage();y=20;}
+  txt('Forma de pagamento: '+(sale.pay||'Não informada'),M,y,9);
+  const note=sale.notes||sale.obs||'';
+  if(note){y+=7;const lines=d.splitTextToSize('Observações: '+note,W-2*M);d.text(lines.slice(0,3),M,y);}
+  const pages=d.internal.getNumberOfPages();
+  for(let page=1;page<=pages;page++){
+    d.setPage(page);line(M,276,W-M,276);
+    txt('Obrigado pela preferência!',M,282,8.5,true);
+    txt('DOCUMENTO SEM VALOR FISCAL',W-M,282,7.5,true);
+    d.text('Página '+page+' de '+pages,W-M,289,{align:'right'});
+  }
   await deliver(d.output('blob'),`venda-${no}.pdf`,true);
 }
 async function pdfCatalog(list){
