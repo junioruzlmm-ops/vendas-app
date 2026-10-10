@@ -942,9 +942,9 @@ async function pdfSale(sale){
   let iy=27;for(const part of info){const rows=d.splitTextToSize(String(part),W-titleX-M-7);for(const row of rows.slice(0,2)){txt(row,titleX,iy,8);iy+=4.4;}}
   line(M,55,W-M,55);
   txt('COMPROVANTE DE VENDA',M+3,62,12,true);
-  txt('Nº '+no,W-M-3,62,10,true);
+  d.setFont('helvetica','bold');d.setFontSize(10);d.setTextColor(24,35,53);d.text('Nº '+no,W-M-3,62,{align:'right'});
   txt('Emissão: '+fmtDate(sale.date)+' às '+fmtTime(sale.date),M+3,69,8.5);
-  txt('Documento sem valor fiscal',W-M-3,69,7.5);
+  d.setFont('helvetica','normal');d.setFontSize(7.5);d.setTextColor(24,35,53);d.text('Documento sem valor fiscal',W-M-3,69,{align:'right'});
   d.setDrawColor(185,194,207);d.roundedRect(M,74,W-2*M,25,2,2);
   txt('DADOS DO CLIENTE',M+3,80,8,true);
   txt('Nome: '+(sale.client?.name||'Consumidor final'),M+3,86,9);
@@ -973,7 +973,7 @@ async function pdfSale(sale){
   for(let page=1;page<=pages;page++){
     d.setPage(page);line(M,276,W-M,276);
     txt('Obrigado pela preferência!',M,282,8.5,true);
-    txt('DOCUMENTO SEM VALOR FISCAL',W-M,282,7.5,true);
+    d.setFont('helvetica','bold');d.setFontSize(7.5);d.setTextColor(24,35,53);d.text('DOCUMENTO SEM VALOR FISCAL',W-M,282,{align:'right'});
     d.text('Página '+page+' de '+pages,W-M,289,{align:'right'});
   }
   await deliver(d.output('blob'),`venda-${no}.pdf`,true);
