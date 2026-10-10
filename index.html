@@ -168,6 +168,26 @@ html,body,#app,#screen,#sheet,.sheet{max-width:100%;overflow-x:hidden;overscroll
 .sheet input,.sheet textarea,.sheet select,.sheet img{max-width:100%}
 .sheet .grid2{grid-template-columns:repeat(2,minmax(0,1fr))}
 .sheet .row{min-width:0;flex-wrap:wrap}
+
+/* Correção iPhone: formulário sem deslocamento horizontal */
+html,body{width:100%;max-width:100%;overflow-x:clip}
+#app,#screen,#sheet{min-width:0;max-width:100%;overflow-x:clip}
+#sheet.open{min-width:0;max-width:100%;overflow-x:clip}
+.sheet{box-sizing:border-box;min-width:0;width:100%;max-width:100%;overflow-x:clip;overscroll-behavior-x:none;touch-action:pan-y}
+.sheet .field,.sheet .grid2,.sheet .grid2>.field,.sheet .row,.sheet .pimg,.sheet .pimg .acts{min-width:0;max-width:100%}
+.sheet .field input,.sheet .field textarea,.sheet .field select{min-width:0;width:100%;max-width:100%}
+.sheet .row{flex-wrap:nowrap}
+.sheet .row>input{flex:1 1 0;min-width:0}
+.sheet .row>.icon-btn,.sheet .row>.btn{flex:0 0 auto}
+.sheet .grid2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.sheet .pimg{display:grid;grid-template-columns:minmax(0,104px) minmax(0,1fr);gap:12px;align-items:center}
+.sheet .pimg .box{width:100%;max-width:104px;height:auto;aspect-ratio:1}
+.sheet .pimg .acts{display:grid;grid-template-columns:minmax(0,1fr);gap:8px}
+.sheet .pimg .acts .btn{width:100%;min-width:0;max-width:100%;white-space:normal;overflow-wrap:anywhere;word-break:normal;text-align:center;height:auto;min-height:40px;padding:8px 6px;line-height:1.25}
+.sheet .pimg .acts .btn .ic{flex:0 0 auto}
+.sheet .status,.sheet .calc,.sheet .mv{overflow-wrap:anywhere;min-width:0}
+@media(max-width:360px){.sheet{padding-left:14px;padding-right:14px}.sheet .pimg{grid-template-columns:82px minmax(0,1fr);gap:10px}.sheet .pimg .acts .btn{font-size:12px}}
+
 /* sheet / scan / toast */
 #sheet,#scan{position:absolute;inset:0;display:none;background:rgba(7,12,22,.55);z-index:20}
 #sheet.open{display:flex;align-items:flex-end}
