@@ -638,16 +638,6 @@ function clients(){
   ${l.length?`<div class="list">${l.map(c=>`<div class="item" style="cursor:default"><span class="thumb ph" style="--h:${hueOf(c.name)}">${esc(c.name.charAt(0))}</span><span class="mid"><span class="nm">${esc(c.name)}</span><span class="sb">${c.n} ${c.n===1?'compra':'compras'} · última em ${fmtDate(c.last)}${c.phone?' · '+esc(c.phone):''}</span></span><span class="rt"><b>${brl(c.tot)}</b></span></div>`).join('')}</div>`:`<div class="empty"><b>Nenhum cliente ainda</b>Informe o nome ao finalizar uma venda e ele aparece aqui.</div>`}`;
 }
 
-function applyBalcaoTheme(){
-  const theme=localStorage.getItem('balcao-theme')||'auto';
-  const color=localStorage.getItem('balcao-color')||'#2547F5';
-  document.documentElement.style.setProperty('--accent', color);
-  document.documentElement.removeAttribute('data-theme');
-  if(theme==='dark') document.documentElement.setAttribute('data-theme','dark');
-  if(theme==='light') document.documentElement.setAttribute('data-theme','light');
-}
-applyBalcaoTheme();
-
 function settings(){
   const st=S.settings;
   return `${header('Ajustes','Loja e dados',true)}
@@ -661,16 +651,14 @@ function settings(){
     <button class="btn" data-act="set-save">Salvar dados</button>
   </div>
   <div class="card"><h3>Aparência</h3>
-    <div class="field">
-      <label>Tema</label>
+    <div class="field"><label>Tema do aplicativo</label>
       <select id="theme-choice">
         <option value="auto">Automático (iPhone)</option>
         <option value="light">Claro</option>
         <option value="dark">Escuro</option>
       </select>
     </div>
-    <div class="field">
-      <label>Cor principal</label>
+    <div class="field"><label>Cor principal</label>
       <select id="color-choice">
         <option value="#2547F5">Azul Balcão</option>
         <option value="#0A84FF">Azul iOS</option>
@@ -678,12 +666,11 @@ function settings(){
         <option value="#FF9F0A">Laranja</option>
       </select>
     </div>
-    <div class="card" style="background:var(--surface2)">
+    <div style="background:var(--surface2);padding:12px;border-radius:14px">
       <b>Prévia</b>
-      <div style="margin-top:10px;background:var(--surface);padding:12px;border-radius:14px">
-        <strong>Balcão</strong><br>
-        Faturamento hoje: R$ 480,00
-        <button class="btn sm" style="margin-top:10px">Nova venda</button>
+      <div style="background:var(--surface);padding:12px;border-radius:12px;margin-top:8px">
+        Balcão<br>
+        <button class="btn sm" style="margin-top:8px">Nova venda</button>
       </div>
     </div>
     <button class="btn" data-act="theme-save">Salvar aparência</button>
@@ -700,6 +687,16 @@ function settings(){
     <button class="btn danger" data-act="wipe">Apagar todos os dados</button>
   </div>`;
 }
+
+function applyBalcaoTheme(){
+  const theme=localStorage.getItem('balcao-theme')||'auto';
+  const color=localStorage.getItem('balcao-color')||'#2547F5';
+  document.documentElement.style.setProperty('--accent',color);
+  document.documentElement.removeAttribute('data-theme');
+  if(theme==='dark') document.documentElement.setAttribute('data-theme','dark');
+  if(theme==='light') document.documentElement.setAttribute('data-theme','light');
+}
+applyBalcaoTheme();
 
 const SCREENS={home,products,sell,sales,more,reports,catalog,clients,settings};
 function render(reset){
@@ -1126,10 +1123,10 @@ const ACT={
   'cat-all'(){const l=catalogList(),all=l.every(p=>V.catSel.has(p.id));l.forEach(p=>all?V.catSel.delete(p.id):V.catSel.add(p.id));render();},
   'cat-pdf'(){pdfCatalog(catalogList().filter(p=>V.catSel.has(p.id)));},
   'theme-save'(){
-    const theme=$('#theme-choice')?.value || 'auto';
-    const color=$('#color-choice')?.value || '#2547F5';
-    localStorage.setItem('balcao-theme', theme);
-    localStorage.setItem('balcao-color', color);
+    const theme=document.querySelector('#theme-choice')?.value||'auto';
+    const color=document.querySelector('#color-choice')?.value||'#2547F5';
+    localStorage.setItem('balcao-theme',theme);
+    localStorage.setItem('balcao-color',color);
     applyBalcaoTheme();
     toast('Aparência salva');
   },
