@@ -833,7 +833,7 @@ function openProduct(id,code){
   <div class="field"><label>Nome do produto</label><input id="f-name" value="${esc(p.name)}" placeholder="Ex.: Arroz Tipo 1 5kg"></div>
   <div class="field"><label>Categoria</label><input id="f-cat" list="f-cats" value="${esc(p.cat)}" placeholder="Ex.: Mercearia"><datalist id="f-cats">${cats.map(c=>`<option value="${esc(c)}">`).join('')}</datalist></div>
   <div class="grid2"><div class="field"><label>Valor de custo (R$)</label><input id="f-cost" inputmode="decimal" value="${inNum(p.cost)}" placeholder="0,00"></div><div class="field"><label>Valor de venda (R$)</label><input id="f-price" inputmode="decimal" value="${inNum(p.price)}" placeholder="0,00"></div></div>
-  <div class="field"><label>Percentual de Subsídio Cruzado (%)</label><input id="f-gordura" inputmode="decimal" value="${inNum(p.gorduraPct||0)}" placeholder="0"><span class="sub">Ex.: 10% em um produto de R$ 100,00 gera R$ 10,00 para o saldo do Subsídio Cruzado por unidade vendida.</span></div>
+  <div class="field"><label>Percentual de Subsídio Cruzado (%)</label><input id="f-gordura" inputmode="decimal" value="${inNum(p.gorduraPct||0)}" placeholder="0"><span class="sub" id="f-gordura-preview">Valor gerado por unidade: ${brl((num(p.price)||0)*(num(p.gorduraPct)||0)/100)}. Informe o preço de venda e o percentual para calcular automaticamente.</span></div>
   <div class="calc" id="f-calc"></div>
   <div class="grid2"><div class="field"><label>Estoque (unidades)</label><input id="f-stock" inputmode="numeric" value="${p.stock}"></div><div class="field"><label>Avisar abaixo de</label><input id="f-min" inputmode="numeric" value="${p.min}"></div></div>
   ${id?`<div class="field"><label>Entrada de estoque (reposição)</label><div class="row"><input id="f-entry" inputmode="numeric" placeholder="Quantidade"><button class="btn sm" data-act="p-entry">Somar</button></div></div>`:''}
@@ -847,8 +847,11 @@ function openProduct(id,code){
   if(!id&&p.code)doLookup(p.code,false);
 }
 function calcMargin(){
-  const b=$('#f-calc');if(!b)return;
-  const c=num($('#f-cost').value),v=num($('#f-price').value);
+  const b=$('#f-calc');
+  const priceInput=$('#f-price'),costInput=$('#f-cost'),pctInput=$('#f-gordura'),preview=$('#f-gordura-preview');
+  const c=num(costInput?.value||0),v=num(priceInput?.value||0),pct=Math.min(100,Math.max(0,num(pctInput?.value||0)));
+  if(preview)preview.textContent=`Gera ${brl(v*pct/100)} por unidade vendida (${pct.toLocaleString('pt-BR',{maximumFractionDigits:2})}% do preço de venda).`;
+  if(!b)return;
   if(!v){b.className='calc';b.textContent='Informe o valor de venda para ver o lucro.';return;}
   const l=v-c,m=l/v*100;
   b.className='calc'+(l<0?' bad':'');
@@ -1181,7 +1184,7 @@ document.addEventListener('input',e=>{
   if(t.id==='pq'){V.pq=t.value;$('#plist').innerHTML=plistHTML();}
   else if(t.id==='sq'){V.sq=t.value;$('#sres').innerHTML=sellResultsHTML();}
   else if(t.id==='salq'){V.salq=t.value;$('#slist').innerHTML=salesListHTML();}
-  else if(t.id==='f-cost'||t.id==='f-price')calcMargin();
+  else if(t.id==='f-cost'||t.id==='f-price'||t.id==='f-gordura')calcMargin();
   else if(t.id==='f-code'){clearTimeout(lookupTimer);const c=t.value.trim();lookupTimer=setTimeout(()=>doLookup(c,false),700);}
   else if(t.id==='co-disc')coSum();
 });
