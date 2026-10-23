@@ -388,8 +388,8 @@ const saleTotal=s=>Math.max(0,saleSub(s)-(s.discount||0));
 const saleCost=s=>s.items.reduce((a,i)=>a+i.qty*i.cost,0);
 const saleProfit=s=>saleTotal(s)-saleCost(s);
 const gorduraSaldo=()=>r2((S.gorduraMoves||[]).reduce((a,m)=>a+(m.amount||0),0));
-const gorduraEstoquePrevisto=()=>r2((S.products||[]).reduce((total,p)=>total+Math.max(0,num(p.price))*Math.max(0,Math.floor(num(p.stock)||0))*Math.min(100,Math.max(0,num(p.gorduraPct)||0))/100,0));
-function openGordura(){const l=(S.gorduraMoves||[]).slice().sort((a,b)=>b.date.localeCompare(a.date));const gerado=gorduraSaldo(),previsto=gorduraEstoquePrevisto(),total=r2(gerado+previsto);openSheet(`<h2>Extrato do Subsídio Cruzado</h2><div class="card"><div class="lbl">Total disponível + previsto</div><div class="t-big" style="font-size:36px;margin:8px 0">${brl(total)}</div><div class="ln"><span>Saldo gerado nas vendas</span><i></i><b>${brl(gerado)}</b></div><div class="ln"><span>Previsto nas unidades em estoque</span><i></i><b>${brl(previsto)}</b></div><div class="sub">O saldo gerado vem das vendas concluídas, menos descontos utilizados. O previsto é uma estimativa do estoque e ainda não pode financiar descontos.</div></div>${l.length?`<div class="list">${l.map(m=>`<div class="item"><span class="mid"><span class="nm">${esc(m.label)}</span><span class="sb">${fmtDate(m.date)} · ${esc(m.note||'')}</span></span><span class="rt"><b style="color:${m.amount>=0?'var(--profit)':'var(--danger)'}">${m.amount>=0?'+':'−'}${brl(Math.abs(m.amount))}</b></span></div>`).join('')}</div>`:'<div class="empty"><b>Nenhuma movimentação</b>Quando vender produtos com percentual de Subsídio Cruzado configurado, os valores aparecerão aqui.</div>'}<button class="btn ghost" data-act="sheet-close">Fechar</button>`);}
+const precoCliente=p=>r2(Math.max(0,num(p?.price)||0)*(1+Math.min(100,Math.max(0,num(p?.gorduraPct)||0))/100));
+function openGordura(){const l=(S.gorduraMoves||[]).slice().sort((a,b)=>b.date.localeCompare(a.date));openSheet(`<h2>Extrato do Subsídio Cruzado</h2><div class="card"><div class="lbl">Saldo disponível</div><div class="t-big" style="font-size:36px;margin:8px 0">${brl(gorduraSaldo())}</div><div class="sub">Valores gerados pelas vendas menos os descontos utilizados.</div></div>${l.length?`<div class="list">${l.map(m=>`<div class="item"><span class="mid"><span class="nm">${esc(m.label)}</span><span class="sb">${fmtDate(m.date)} · ${esc(m.note||'')}</span></span><span class="rt"><b style="color:${m.amount>=0?'var(--profit)':'var(--danger)'}">${m.amount>=0?'+':'−'}${brl(Math.abs(m.amount))}</b></span></div>`).join('')}</div>`:'<div class="empty"><b>Nenhuma movimentação</b>Quando vender produtos com percentual de Subsídio Cruzado configurado, os valores aparecerão aqui.</div>'}<button class="btn ghost" data-act="sheet-close">Fechar</button>`);}
 const salesBetween=(a,b)=>S.sales.filter(s=>!s.cancelled&&new Date(s.date)>=a&&new Date(s.date)<b);
 function pStatus(p){
   const d=daysTo(p.exp);
@@ -468,7 +468,7 @@ function home(){
   <div class="qa"><button class="btn" style="margin:0" data-act="tab" data-tab="sell">${ic('cart',20)} Nova venda</button><button class="btn ghost" style="margin:0" data-act="prod-new">${ic('plus',20)} Novo produto</button></div>
   ${alerts.length?`<div class="card"><h3>Precisa de atenção</h3>${alerts.join('')}</div>`:`<div class="card"><h3>Estoque em dia</h3><span class="sub" style="margin:0">Nada vencendo ou acabando por enquanto.</span></div>`}
   <div class="card"><h3>Últimos 7 dias</h3>${bars(ser)}<div class="sub" style="margin:8px 0 0"><span style="color:var(--profit);font-weight:600">Verde</span> é o lucro; o fundo azul é o faturamento.</div></div>
-  <button class="card" data-act="gordura-open" style="width:100%;text-align:left;cursor:pointer;border:1px solid var(--line);color:var(--ink)"><div class="row"><span class="mid"><b style="font-family:var(--display);font-size:17px">Subsídio Cruzado disponível</b><span class="sb">Saldo gerado nas vendas + previsto no estoque</span></span><b style="font-size:22px;color:var(--profit)">${brl(r2(gorduraSaldo()+gorduraEstoquePrevisto()))}</b>${ic('chev',18)}</div></button>`;
+  <button class="card" data-act="gordura-open" style="width:100%;text-align:left;cursor:pointer;border:1px solid var(--line);color:var(--ink)"><div class="row"><span class="mid"><b style="font-family:var(--display);font-size:17px">Subsídio Cruzado disponível</b><span class="sb">Valores gerados nas vendas menos descontos utilizados</span></span><b style="font-size:22px;color:var(--profit)">${brl(gorduraSaldo())}</b>${ic('chev',18)}</div></button>`;
 }
 
 function filteredProducts(){
@@ -482,7 +482,7 @@ function plistHTML(){
   const l=filteredProducts();
   if(!S.products.length)return `<div class="empty"><b>Nenhum produto ainda</b>Toque no botão + para cadastrar o primeiro. Se tiver o código de barras, a foto vem sozinha.</div>`;
   if(!l.length)return `<div class="empty"><b>Nada encontrado</b>Tente outra busca ou outro filtro.</div>`;
-  return `<div class="list">${l.map(p=>`<button class="item" data-act="prod-open" data-id="${p.id}">${thumb(p)}<span class="mid"><span class="nm">${esc(p.name)}</span><span class="sb">${badges(p)}</span><span class="sb">${esc(p.code||'sem código')}</span></span><span class="rt"><b>${brl(p.price)}</b><small>+${brl(p.price-p.cost)}</small><span class="sb">${p.stock} un</span></span></button>`).join('')}</div>`;
+  return `<div class="list">${l.map(p=>`<button class="item" data-act="prod-open" data-id="${p.id}">${thumb(p)}<span class="mid"><span class="nm">${esc(p.name)}</span><span class="sb">${badges(p)}</span><span class="sb">${esc(p.code||'sem código')}</span></span><span class="rt"><b>${brl(precoCliente(p))}</b><small>+${brl(precoCliente(p)-p.cost)}</small><span class="sb">${p.stock} un</span></span></button>`).join('')}</div>`;
 }
 function products(){
   const c=counts();
@@ -503,14 +503,14 @@ function sellResultsHTML(){
   else{const m=soldMap();l=l.sort((a,b)=>(m[b.id]||0)-(m[a.id]||0)).slice(0,5);}
   l=l.slice(0,8);
   if(!l.length)return `<div class="empty" style="padding:18px"><b>Nenhum produto com estoque</b>Confira a busca ou cadastre o produto em Produtos.</div>`;
-  return `${title?`<div class="sec" style="margin-top:6px;font-size:15px">${title}</div>`:''}<div class="list">${l.map(p=>`<button class="item" data-act="add" data-id="${p.id}">${thumb(p)}<span class="mid"><span class="nm">${esc(p.name)}</span><span class="sb">${brl(p.price)} · ${p.stock} em estoque</span></span><span style="color:var(--accent)">${ic('plus')}</span></button>`).join('')}</div>`;
+  return `${title?`<div class="sec" style="margin-top:6px;font-size:15px">${title}</div>`:''}<div class="list">${l.map(p=>`<button class="item" data-act="add" data-id="${p.id}">${thumb(p)}<span class="mid"><span class="nm">${esc(p.name)}</span><span class="sb">${brl(precoCliente(p))} · ${p.stock} em estoque</span></span><span style="color:var(--accent)">${ic('plus')}</span></button>`).join('')}</div>`;
 }
 function cartHTML(){
   if(!V.cart.length)return `<div class="empty"><b>Venda vazia</b>Busque um produto ou escaneie o código de barras para começar.</div>`;
-  return `<div class="sec">Itens da venda</div><div class="list">${V.cart.map(c=>{const p=prod(c.pid);return `<div class="citem">${thumb(p)}<div class="mid"><b>${esc(p.name)}</b><span>${brl(p.price)} cada</span></div><div class="qty"><button data-act="dec" data-id="${p.id}" aria-label="Diminuir">−</button><span>${c.qty}</span><button data-act="inc" data-id="${p.id}" aria-label="Aumentar">+</button></div><div class="ci-tot">${brl(p.price*c.qty)}</div></div>`;}).join('')}</div>`;
+  return `<div class="sec">Itens da venda</div><div class="list">${V.cart.map(c=>{const p=prod(c.pid);return `<div class="citem">${thumb(p)}<div class="mid"><b>${esc(p.name)}</b><span>${brl(precoCliente(p))} cada</span></div><div class="qty"><button data-act="dec" data-id="${p.id}" aria-label="Diminuir">−</button><span>${c.qty}</span><button data-act="inc" data-id="${p.id}" aria-label="Aumentar">+</button></div><div class="ci-tot">${brl(precoCliente(p)*c.qty)}</div></div>`;}).join('')}</div>`;
 }
 function cartTotals(){
-  let t=0,p=0;V.cart.forEach(c=>{const x=prod(c.pid);if(x){t+=x.price*c.qty;p+=(x.price-x.cost)*c.qty;}});
+  let t=0,p=0;V.cart.forEach(c=>{const x=prod(c.pid);if(x){const price=precoCliente(x);t+=price*c.qty;p+=(price-x.cost)*c.qty;}});
   return {t,p};
 }
 function dockHTML(){
@@ -915,12 +915,12 @@ function coSum(){
   box.innerHTML=`<div class="ln"><span>Subtotal</span><i></i><b>${brl(t)}</b></div><div class="ln"><span>Subsídio Cruzado disponível para esta venda</span><i></i><b>${brl(available)}</b></div>${d?`<div class="ln"><span>Desconto coberto pelo Subsídio Cruzado</span><i></i><b>− ${brl(d)}</b></div>`:''}<div class="ln"><span>Lucro da venda</span><i></i><b style="color:var(--profit)">${brl(p-d)}</b></div><div class="ln tot"><span>Total</span><i></i><b>${brl(t-d)}</b></div>`;
 }
 async function completeSale(share){
-  const items=V.cart.map(c=>{const p=prod(c.pid);return {pid:p.id,code:p.code,name:p.name,qty:c.qty,price:p.price,cost:p.cost,gorduraPct:p.gorduraPct||0};});
+  const items=V.cart.map(c=>{const p=prod(c.pid);return {pid:p.id,code:p.code,name:p.name,qty:c.qty,price:precoCliente(p),basePrice:p.price,cost:p.cost,gorduraPct:p.gorduraPct||0};});
   const sub=items.reduce((a,i)=>a+i.qty*i.price,0);
   const sale={id:uid(),n:S.nextSale++,date:new Date().toISOString(),items,discount:coDiscount(sub),pay:CO.pay,client:{name:$('#co-name').value.trim(),phone:$('#co-phone').value.trim()},cancelled:false};
   S.gorduraMoves=S.gorduraMoves||[];const saldoAntes=gorduraSaldo();
-  items.forEach(i=>{const p=prod(i.pid);p.stock-=i.qty;S.moves.push({id:uid(),pid:p.id,date:sale.date,qty:-i.qty,type:'venda',note:'Venda nº '+sale.n});const amount=r2(i.price*i.qty*(i.gorduraPct||0)/100);if(amount>0)S.gorduraMoves.push({id:uid(),saleId:sale.id,pid:i.pid,date:sale.date,amount,label:'Subsídio Cruzado gerado · '+i.name,note:'Venda nº '+sale.n});});
-  const gerada=items.reduce((a,i)=>a+r2(i.price*i.qty*(i.gorduraPct||0)/100),0);const usada=r2(Math.min(sale.discount||0,saldoAntes+gerada));if(usada>0)S.gorduraMoves.push({id:uid(),saleId:sale.id,date:sale.date,amount:-usada,label:'Desconto financiado pelo Subsídio Cruzado',note:'Venda nº '+sale.n});sale.gorduraUsada=usada;
+  items.forEach(i=>{const p=prod(i.pid);p.stock-=i.qty;S.moves.push({id:uid(),pid:p.id,date:sale.date,qty:-i.qty,type:'venda',note:'Venda nº '+sale.n});const amount=r2((i.basePrice??i.price)*i.qty*(i.gorduraPct||0)/100);if(amount>0)S.gorduraMoves.push({id:uid(),saleId:sale.id,pid:i.pid,date:sale.date,amount,label:'Subsídio Cruzado gerado · '+i.name,note:'Venda nº '+sale.n});});
+  const gerada=items.reduce((a,i)=>a+r2((i.basePrice??i.price)*i.qty*(i.gorduraPct||0)/100),0);const usada=r2(Math.min(sale.discount||0,saldoAntes+gerada));if(usada>0)S.gorduraMoves.push({id:uid(),saleId:sale.id,date:sale.date,amount:-usada,label:'Desconto financiado pelo Subsídio Cruzado',note:'Venda nº '+sale.n});sale.gorduraUsada=usada;
   S.sales.push(sale);S.demo=S.demo;V.cart=[];V.sq='';
   save();closeSheet();render();toast('Venda nº '+sale.n+' registrada');
   if(share)await pdfSale(sale);
