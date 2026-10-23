@@ -1,4 +1,7 @@
-Visual original preservado do HTML enviado. Publique a pasta inteira em hospedagem HTTPS (Netlify Drop ou GitHub Pages). No Safari, Compartilhar > Adicionar à Tela de Início. Dependências externas de PDF/câmera e consulta de imagem exigem internet na primeira utilização; offline completo não está garantido. Dados ficam no aparelho, faça backups frequentes. O aplicativo não emite documento fiscal.
+Aplicativo Balcão — vendas e estoque.
 
+Publique a pasta inteira em hospedagem HTTPS (por exemplo, Netlify ou GitHub Pages). No Safari do iPhone, use Compartilhar > Adicionar à Tela de Início.
 
-NOVO RECURSO: Gordura para descontos. No cadastro do produto, configure a porcentagem extra. As vendas geram saldo e descontos utilizados são registrados no extrato acessível na tela inicial. Os dados ficam salvos no armazenamento local do aplicativo.
+Subsídio Cruzado: no cadastro de cada produto, configure o Percentual de Subsídio Cruzado (%). As vendas geram saldo conforme o percentual configurado; os descontos são limitados ao saldo disponível, e o extrato registra valores gerados, descontos utilizados e estornos em vendas canceladas.
+
+Os dados ficam armazenados localmente neste aparelho. Faça backups frequentes em Mais > Ajustes. O saldo não é sincronizado automaticamente entre aparelhos. Dependências externas para PDF, câmera e consulta de imagens podem exigir internet. O aplicativo não emite documento fiscal.
