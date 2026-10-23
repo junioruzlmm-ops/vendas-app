@@ -912,7 +912,7 @@ function coDiscount(sub){
 function coSum(){
   const box=$('#co-sum');if(!box)return;
   const {t,p}=cartTotals(),d=coDiscount(t),available=r2(Math.max(0,gorduraSaldo()+cartSubsidyGeneration()));
-  box.innerHTML=`<div class="ln"><span>Subtotal</span><i></i><b>${brl(t)}</b></div><div class="ln"><span>Subsídio Cruzado disponível para esta venda</span><i></i><b>${brl(available)}</b></div>${d?`<div class="ln"><span>Desconto coberto pelo Subsídio Cruzado</span><i></i><b>− ${brl(d)}</b></div>`:''}<div class="ln"><span>Lucro da venda</span><i></i><b style="color:var(--profit)">${brl(p-d)}</b></div><div class="ln tot"><span>Total</span><i></i><b>${brl(t-d)}</b></div>`;
+  box.innerHTML=`<div class="ln"><span>Subtotal</span><i></i><b>${brl(t)}</b></div><div class="ln"><span>Subsídio Cruzado disponível para esta venda</span><i></i><b>${brl(available)}</b></div>${d?`<div class="ln"><span>Desconto coberto pelo Subsídio Cruzado</span><i></i><b>− ${brl(d)}</b></div>`:''}<div class="ln"><span>Lucro da venda</span><i></i><b style="color:var(--profit)">${brl(p)}</b></div><div class="ln tot"><span>Total</span><i></i><b>${brl(t-d)}</b></div>`;
 }
 async function completeSale(share){
   const items=V.cart.map(c=>{const p=prod(c.pid);return {pid:p.id,code:p.code,name:p.name,qty:c.qty,price:precoCliente(p),basePrice:p.price,cost:p.cost,gorduraPct:p.gorduraPct||0};});
