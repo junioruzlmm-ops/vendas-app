@@ -440,7 +440,7 @@ function bars(ser){
 function home(){
   const t0=startOfDay(new Date());
   const ss=salesBetween(t0,addDays(t0,1));
-  const rev=ss.reduce((a,s)=>a+saleTotal(s),0),cost=ss.reduce((a,s)=>a+saleCost(s),0),profit=rev-cost;
+  const rev=ss.reduce((a,s)=>a+saleTotal(s),0),cost=ss.reduce((a,s)=>a+saleCost(s),0),profit=ss.reduce((a,s)=>a+s.items.reduce((v,i)=>v+i.qty*((i.basePrice??i.price)-i.cost),0),0);
   const c=counts();
   const ser=[];
   for(let i=6;i>=0;i--){const d=addDays(t0,-i);const x=salesBetween(d,addDays(d,1));ser.push({l:wd(d),rev:x.reduce((a,s)=>a+saleTotal(s),0),profit:x.reduce((a,s)=>a+saleProfit(s),0)});}
