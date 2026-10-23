@@ -386,7 +386,7 @@ const alertDays=()=>S.settings.alertDays||30;
 const saleSub=s=>s.items.reduce((a,i)=>a+i.qty*i.price,0);
 const saleTotal=s=>Math.max(0,saleSub(s)-(s.discount||0));
 const saleCost=s=>s.items.reduce((a,i)=>a+i.qty*i.cost,0);
-const saleProfit=s=>s.items.reduce((a,i)=>a+i.qty*((i.basePrice??i.price)-i.cost),0);
+const saleProfit=s=>s.items.reduce((a,i)=>a+i.qty*(i.price-i.cost),0);
 const gorduraSaldo=()=>r2((S.gorduraMoves||[]).reduce((a,m)=>a+(m.amount||0),0));
 const gorduraEstoquePrevisto=()=>r2((S.products||[]).reduce((total,p)=>total+Math.max(0,num(p.price))*Math.max(0,Math.floor(num(p.stock)||0))*Math.min(100,Math.max(0,num(p.gorduraPct)||0))/100,0));
 const precoCliente=p=>r2(Math.max(0,num(p?.price)||0)*(1+Math.min(100,Math.max(0,num(p?.gorduraPct)||0))/100));
